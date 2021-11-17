@@ -26,10 +26,6 @@ RUN scripts/build.sh
 # put the build results from previous steps together into a lean docker image for distribution to self-hosters
 FROM alpine:3.14.2 AS executor
 
-ARG GOARCH=
-ENV CGO_ENABLED 1
-ENV CC "$CC"
-
 RUN apk update && apk upgrade --no-cache
 
 # copy over the binary from the first stage
