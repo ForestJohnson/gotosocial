@@ -9,12 +9,32 @@ WORKDIR /gotosocial-admin
 RUN npm install
 RUN node index.js
 
+# ----
+# golang build of gotosocial application binary
+FROM golang:1.16-buster as application_builder
+ARG GOARCH=
+
+RUN mkdir /build
+WORKDIR /build
+
+COPY . /build
+
+RUN scripts/build.sh
+
+
+# ----
+# put the build results from previous steps together into a lean docker image for distribution to self-hosters
 FROM alpine:3.14.2 AS executor
+
+ARG GOARCH=
+ENV CGO_ENABLED 1
+ENV CC "$CC"
+
 RUN apk update && apk upgrade --no-cache
 
 # copy over the binary from the first stage
 RUN mkdir -p /gotosocial/storage
-COPY gotosocial /gotosocial/gotosocial
+COPY --from=application_builder  /build/gotosocial /gotosocial/gotosocial
 
 # copy over the web directory with templates etc
 COPY web /gotosocial/web
