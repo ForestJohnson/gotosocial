@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-VERSION="0.1.0-test2"
+VERSION="0.1.0-test3"
 
 rm -rf dockerbuild || true
 mkdir dockerbuild
@@ -23,25 +23,26 @@ sed -E 's/GOARCH=/GOARCH=arm64/' -i dockerbuild/Dockerfile-arm64
 
 cat dockerbuild/Dockerfile-arm
 
-docker build -f dockerbuild/Dockerfile-amd64 -t sequentialread/gotosocial:$VERSION-amd64 .
+#docker build -f dockerbuild/Dockerfile-amd64 -t sequentialread/gotosocial:$VERSION-amd64 .
 docker build -f dockerbuild/Dockerfile-arm   -t sequentialread/gotosocial:$VERSION-arm .
-docker build -f dockerbuild/Dockerfile-arm64 -t sequentialread/gotosocial:$VERSION-arm64 .
+#docker build -f dockerbuild/Dockerfile-arm64 -t sequentialread/gotosocial:$VERSION-arm64 .
 
-docker push sequentialread/gotosocial:$VERSION-amd64
+#docker push sequentialread/gotosocial:$VERSION-amd64
 docker push sequentialread/gotosocial:$VERSION-arm
-docker push sequentialread/gotosocial:$VERSION-arm64
+#docker push sequentialread/gotosocial:$VERSION-arm64
 
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
+docker manifest create  sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-arm
 
-docker manifest create  sequentialread/gotosocial:$VERSION \
-   sequentialread/gotosocial:$VERSION-amd64 \
-   sequentialread/gotosocial:$VERSION-arm \
-   sequentialread/gotosocial:$VERSION-arm64 
+# docker manifest create  sequentialread/gotosocial:$VERSION \
+#    sequentialread/gotosocial:$VERSION-amd64 \
+#    sequentialread/gotosocial:$VERSION-arm \
+#    sequentialread/gotosocial:$VERSION-arm64 
 
-docker manifest annotate --arch amd64 sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-amd64
+# docker manifest annotate --arch amd64 sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-amd64
 docker manifest annotate --arch arm sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-arm
-docker manifest annotate --arch arm64 sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-arm64
+# docker manifest annotate --arch arm64 sequentialread/gotosocial:$VERSION sequentialread/gotosocial:$VERSION-arm64
 
 docker manifest push sequentialread/gotosocial:$VERSION
 
