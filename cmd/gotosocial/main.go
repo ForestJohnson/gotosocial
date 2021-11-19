@@ -42,11 +42,12 @@ func main() {
 		v = Version + " " + Commit[:7]
 	}
 
+	flagsSlice := getFlags()
 	app := &cli.App{
 		Version:  v,
 		Usage:    "a fediverse social media server",
-		Flags:    getFlags(),
-		Commands: getCommands(),
+		Flags:    flagsSlice,
+		Commands: getCommands(flagsSlice),
 	}
 
 	err := app.Run(os.Args)
