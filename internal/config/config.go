@@ -85,6 +85,23 @@ func FromFile(path string) (*Config, error) {
 	return Default(), nil
 }
 
+// Empty just returns a new empty config. currently only used by the tests
+func Empty() *Config {
+	return &Config{
+		DBConfig:          &DBConfig{},
+		TemplateConfig:    &TemplateConfig{},
+		AccountsConfig:    &AccountsConfig{},
+		MediaConfig:       &MediaConfig{},
+		StorageConfig:     &StorageConfig{},
+		StatusesConfig:    &StatusesConfig{},
+		LetsEncryptConfig: &LetsEncryptConfig{},
+		OIDCConfig:        &OIDCConfig{},
+		SMTPConfig:        &SMTPConfig{},
+		AccountCLIFlags:   make(map[string]string),
+		ExportCLIFlags:    make(map[string]string),
+	}
+}
+
 // loadFromFile takes a path to a yaml file and attempts to load a Config object from it
 func loadFromFile(path string) (*Config, error) {
 	bytes, err := os.ReadFile(path)
