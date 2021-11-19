@@ -22,5 +22,8 @@ web/assets/swagger.yaml
 # exclude forests hacky docker build folder 
 dockerbuild
 
+# exclude forests dev env storage folda
+storage
+
 # exclude vendor so eclipse git does not freeze for 10 seconds every time i try to add a file
 vendor
