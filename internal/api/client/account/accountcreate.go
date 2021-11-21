@@ -20,9 +20,11 @@ package account
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"net"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/superseriousbusiness/gotosocial/internal/api/model"
@@ -84,11 +86,20 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 		return
 	}
 
+	err = m.HandleAccountCreationBasedOnPostedForm(c, form)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ti)
+}
+
+func (m *Module) HandleAccountCreationBasedOnPostedForm(c *gin.Context, form *model.AccountCreateRequest) (*model.Token, error) {
+	l := logrus.WithField("func", "HandleAccountCreationBasedOnPostedForm")
 	l.Tracef("validating form %+v", form)
 	if err := validateCreateAccount(form, m.config.AccountsConfig); err != nil {
-		l.Debugf("error validating form: %s", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return fmt.Errorf("error validating form: %s", err)
 	}
 
 	clientIP := c.ClientIP()
@@ -96,8 +107,7 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 	signUpIP := net.ParseIP(clientIP)
 	if signUpIP == nil {
 		l.Debugf("error validating sign up ip address %s", clientIP)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ip address could not be parsed from request"})
-		return
+		return nil, errors.New("ip address could not be parsed from request")
 	}
 
 	form.IP = signUpIP
@@ -105,11 +115,9 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 	ti, err := m.processor.AccountCreate(c.Request.Context(), authed, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, err
 	}
-
-	c.JSON(http.StatusOK, ti)
+	return ti, nil
 }
 
 // validateCreateAccount checks through all the necessary prerequisites for creating a new account,
