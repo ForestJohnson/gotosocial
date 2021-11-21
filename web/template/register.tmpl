@@ -1,0 +1,18 @@
+{{ template "header.tmpl" .}}
+<main>
+    <section class="register">
+        <h1>Register</h1>
+        <form action="/auth/register" method="POST">
+            <label for="email">Email</label>
+            <input type="text" class="form-control" name="email" required placeholder="Please enter your email address">
+
+            <label for="username">Username</label>
+            <input type="text" class="form-control" name="username" required placeholder="Please enter your desired username">
+        
+            <label for="password">Password</label>
+            <input type="password" class="form-control" name="password" required placeholder="Please enter a new password">
+            <button type="submit" class="btn btn-success">Register</button>
+        </form>
+    </section>
+</main>
+{{ template "footer.tmpl" .}}

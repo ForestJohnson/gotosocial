@@ -43,6 +43,8 @@ Things are moving on the project! As of July 2021 you can now:
     * [ ] /oauth/revoke POST                                (Revoke a user-level access token)
     * [x] /auth/sign_in GET                                 (Show form for user signin)
     * [x] /auth/sign_in POST                                (Validate username and password and sign user in)
+    * [ ] /auth/register GET                                (Show form for new user registration)
+    * [ ] /auth/register POST                               (Register a new user and send verification email)
   * [ ] Accounts
     * [x] /api/v1/accounts POST                             (Register a new account)
     * [x] /api/v1/accounts/verify_credentials GET           (Verify account credentials with a user token)
