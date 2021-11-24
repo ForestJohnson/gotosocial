@@ -155,14 +155,32 @@ section.apps {
 section.login {
 	form {
 		display: inline-grid;
-		grid-template-columns: auto 100%;
 		grid-gap: 0.7rem;
+    padding-right: 0.7rem;
 
-		button {
+
+    input {
+      width: 70vw;
+      min-width: 250px;
+      max-width: 400px;
+    }
+
+		button, .form-links {
 			place-self: center;
 			grid-column: 2;
 		}
+
+    .form-links {
+      width: 100%;
+      margin-top: 1.4rem;
+      border-top: 1px solid $fg;
+      padding-top: 0.7rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
 	}
+
 }
 
 input, select, textarea {
