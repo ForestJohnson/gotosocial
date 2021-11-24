@@ -156,14 +156,31 @@ section.apps .applist .entry div h3 {
 
 section.login form {
 		display: inline-grid;
-		grid-template-columns: auto 100%;
 		grid-gap: 0.7rem;
+    padding-right: 0.7rem;
 	}
 
-section.login form button {
+section.login form input {
+    width: 70vw;
+    min-width: 250px;
+    max-width: 400px;
+  }
+
+section.login form button,
+section.login form .form-links {
 			place-self: center;
 			grid-column: 2;
 		}
+
+section.login form .form-links {
+      width: 100%;
+      margin-top: 1.4rem;
+      border-top: 1px solid #fafaff;
+      padding-top: 0.7rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
 
 input, select, textarea {
 	border: 1px solid #fafaff;
