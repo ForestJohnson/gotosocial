@@ -20,7 +20,9 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -32,47 +34,52 @@ import (
 	"github.com/superseriousbusiness/oauth2/v4"
 )
 
-func (p *processor) Create(ctx context.Context, applicationToken oauth2.TokenInfo, application *gtsmodel.Application, form *apimodel.AccountCreateRequest) (*apimodel.Token, error) {
+func (p *processor) Create(ctx context.Context, applicationToken oauth2.TokenInfo, application *gtsmodel.Application, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error) {
 	l := logrus.WithField("func", "accountCreate")
 
 	emailAvailable, err := p.db.IsEmailAvailable(ctx, form.Email)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !emailAvailable {
-		return nil, fmt.Errorf("email address %s in use", form.Email)
+		return nil, nil, fmt.Errorf("email address %s in use", form.Email)
 	}
 
 	usernameAvailable, err := p.db.IsUsernameAvailable(ctx, form.Username)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !usernameAvailable {
-		return nil, fmt.Errorf("username %s in use", form.Username)
+		return nil, nil, fmt.Errorf("username %s in use", form.Username)
 	}
 
 	// don't store a reason if we don't require one
 	reason := form.Reason
 	if !p.config.AccountsConfig.ReasonRequired {
 		reason = ""
+	} else {
+		// TODO whats the right way to validate that a reason was provided?  for now, just require more than 2 non whitespace characters.
+		if len(strings.TrimSpace(reason)) < 3 {
+			return nil, nil, errors.New("a reason must be provided for when registering a new account")
+		}
 	}
 
 	l.Trace("creating new username and account")
 	user, err := p.db.NewSignup(ctx, form.Username, text.RemoveHTML(reason), p.config.AccountsConfig.RequireApproval, form.Email, form.Password, form.IP, form.Locale, application.ID, false, false)
 	if err != nil {
-		return nil, fmt.Errorf("error creating new signup in the database: %s", err)
+		return nil, nil, fmt.Errorf("error creating new signup in the database: %s", err)
 	}
 
 	l.Tracef("generating a token for user %s with account %s and application %s", user.ID, user.AccountID, application.ID)
 	accessToken, err := p.oauthServer.GenerateUserAccessToken(ctx, applicationToken, application.ClientSecret, user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("error creating new access token for user %s: %s", user.ID, err)
+		return nil, nil, fmt.Errorf("error creating new access token for user %s: %s", user.ID, err)
 	}
 
 	if user.Account == nil {
 		a, err := p.db.GetAccountByID(ctx, user.AccountID)
 		if err != nil {
-			return nil, fmt.Errorf("error getting new account from the database: %s", err)
+			return nil, nil, fmt.Errorf("error getting new account from the database: %s", err)
 		}
 		user.Account = a
 	}
@@ -86,7 +93,7 @@ func (p *processor) Create(ctx context.Context, applicationToken oauth2.TokenInf
 		OriginAccount:  user.Account,
 	}
 
-	return &apimodel.Token{
+	return user, &apimodel.Token{
 		AccessToken: accessToken.GetAccess(),
 		TokenType:   "Bearer",
 		Scope:       accessToken.GetScope(),

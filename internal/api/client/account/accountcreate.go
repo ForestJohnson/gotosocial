@@ -19,8 +19,6 @@
 package account
 
 import (
-	"errors"
-	"fmt"
 	"net"
 	"net/http"
 
@@ -28,7 +26,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/superseriousbusiness/gotosocial/internal/api/model"
-	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/validate"
 )
@@ -86,70 +83,30 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 		return
 	}
 
-	err = m.HandleAccountCreationBasedOnPostedForm(c, form)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, ti)
-}
-
-func (m *Module) HandleAccountCreationBasedOnPostedForm(c *gin.Context, form *model.AccountCreateRequest) (*model.Token, error) {
-	l := logrus.WithField("func", "HandleAccountCreationBasedOnPostedForm")
-	l.Tracef("validating form %+v", form)
-	if err := validateCreateAccount(form, m.config.AccountsConfig); err != nil {
-		return fmt.Errorf("error validating form: %s", err)
-	}
-
 	clientIP := c.ClientIP()
 	l.Tracef("attempting to parse client ip address %s", clientIP)
 	signUpIP := net.ParseIP(clientIP)
 	if signUpIP == nil {
 		l.Debugf("error validating sign up ip address %s", clientIP)
-		return nil, errors.New("ip address could not be parsed from request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ip address could not be parsed from request"})
+		return
 	}
 
 	form.IP = signUpIP
 
-	ti, err := m.processor.AccountCreate(c.Request.Context(), authed, form)
+	l.Tracef("validating form %+v", form)
+	if err := validate.AccountCreationForm(form, m.config.AccountsConfig); err != nil {
+		l.Debugf("error validating form: %s", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, ti, err := m.processor.AccountCreate(c.Request.Context(), authed, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
-		return nil, err
-	}
-	return ti, nil
-}
-
-// validateCreateAccount checks through all the necessary prerequisites for creating a new account,
-// according to the provided account create request. If the account isn't eligible, an error will be returned.
-func validateCreateAccount(form *model.AccountCreateRequest, c *config.AccountsConfig) error {
-	if !c.OpenRegistration {
-		return errors.New("registration is not open for this server")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	if err := validate.Username(form.Username); err != nil {
-		return err
-	}
-
-	if err := validate.Email(form.Email); err != nil {
-		return err
-	}
-
-	if err := validate.NewPassword(form.Password); err != nil {
-		return err
-	}
-
-	if !form.Agreement {
-		return errors.New("agreement to terms and conditions not given")
-	}
-
-	if err := validate.Language(form.Locale); err != nil {
-		return err
-	}
-
-	if err := validate.SignUpReason(form.Reason, c.ReasonRequired); err != nil {
-		return err
-	}
-
-	return nil
+	c.JSON(http.StatusOK, ti)
 }

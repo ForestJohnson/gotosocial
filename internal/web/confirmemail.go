@@ -49,9 +49,16 @@ func (m *Module) confirmEmailGETHandler(c *gin.Context) {
 		return
 	}
 
+	instructions := "To access your new account, try restarting the login process from Tusky or Pinafore."
+
+	if m.config.AccountsConfig.RequireApproval {
+		instructions = "Your new account must be approved by an administrator before you can log in."
+	}
+
 	c.HTML(http.StatusOK, "confirmed.tmpl", gin.H{
-		"instance": instance,
-		"email":    user.Email,
-		"username": user.Account.Username,
+		"instance":     instance,
+		"email":        user.Email,
+		"username":     user.Account.Username,
+		"instructions": instructions,
 	})
 }

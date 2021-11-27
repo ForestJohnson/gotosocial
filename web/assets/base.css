@@ -154,16 +154,34 @@ section.apps .applist .entry div h3 {
 					margin-top: 0;
 				}
 
-section.login form {
+section.auth-form form {
 		display: inline-grid;
 		grid-template-columns: auto 100%;
 		grid-gap: 0.7rem;
 	}
 
-section.login form button {
+section.auth-form form input[type=text],
+section.auth-form form input[type=password] {
+    width: 70vw;
+    min-width: 250px;
+    max-width: 400px;
+  }
+
+section.auth-form form button,
+section.auth-form form .form-links {
 			place-self: center;
 			grid-column: 2;
 		}
+
+section.auth-form form .form-links {
+      width: 100%;
+      margin-top: 1.4rem;
+      border-top: 1px solid #fafaff;
+      padding-top: 0.7rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
 
 input, select, textarea {
 	border: 1px solid #fafaff;

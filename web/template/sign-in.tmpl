@@ -1,14 +1,20 @@
 {{ template "header.tmpl" .}}
 <main>
-    <section class="login">
-        <h1>Login</h1>
+    <section class="auth-form login">
+        <h1>Sign In</h1>
         <form action="/auth/sign_in" method="POST">
             <label for="email">Email</label>
             <input type="text" class="form-control" name="username" required placeholder="Please enter your email address">
         
             <label for="password">Password</label>
             <input type="password" class="form-control" name="password" required placeholder="Please enter your password">
-            <button type="submit" class="btn btn-success">Login</button>
+            <button type="submit" class="btn btn-success">Sign In</button>
+
+
+
+            <div class="form-links">
+              <a href="../register">Register a new account...</a>
+            </div>
         </form>
     </section>
 </main>
