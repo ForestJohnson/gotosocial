@@ -153,7 +153,6 @@ section.apps {
 }
 
 section.auth-form {
-	form {
 		display: inline-grid;
 		grid-template-columns: auto 100%;
 		grid-gap: 0.7rem;
@@ -170,7 +169,6 @@ section.auth-form {
 			place-self: center;
 			grid-column: 2;
 		}
-	}
 }
 
 input, select, textarea {
