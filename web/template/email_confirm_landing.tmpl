@@ -1,0 +1,18 @@
+{{ template "header.tmpl" .}}
+<main>
+	<section>
+
+    <h1>{{ .headerText }}</h1>
+    <p>
+      {{ .paragraphText }}
+    </p>
+    <noscript>
+    <form action="/auth/confirm_email" method="POST">
+      <input type="hidden" name="confirm_email_token" value="{{ .confirmEmailToken }}">
+      <button type="submit" class="btn btn-success">{{ .buttonText }}</button>
+    </form>
+
+	</section>
+</main>
+
+{{ template "footer.tmpl" .}}
