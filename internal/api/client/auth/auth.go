@@ -26,7 +26,9 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/oidc"
+	"github.com/superseriousbusiness/gotosocial/internal/processing"
 	"github.com/superseriousbusiness/gotosocial/internal/router"
+	"github.com/superseriousbusiness/gotosocial/internal/util"
 )
 
 /* #nosec G101 */
@@ -34,7 +36,10 @@ const (
 	// AuthSignInPath is the API path for users to sign in through
 	AuthSignInPath = "/auth/sign_in"
 	// AuthSignInPath is the API path for users to sign in through
-	AuthRegisterPath = "/auth/register"
+	AuthRegisterPath   = "/auth/register"
+	CheckYourEmailPath = "/check_your_email"
+
+	ConfirmEmailPath = "/" + util.ConfirmEmailPath
 	// OauthTokenPath is the API path to use for granting token requests to users with valid credentials
 	OauthTokenPath = "/oauth/token"
 	// OauthAuthorizePath is the API path for authorization requests (eg., authorize this app to act on my behalf as a user)
@@ -56,19 +61,21 @@ const (
 
 // Module implements the ClientAPIModule interface for
 type Module struct {
-	config *config.Config
-	db     db.DB
-	server oauth.Server
-	idp    oidc.IDP
+	config    *config.Config
+	db        db.DB
+	server    oauth.Server
+	idp       oidc.IDP
+	processor processing.Processor
 }
 
 // New returns a new auth module
-func New(config *config.Config, db db.DB, server oauth.Server, idp oidc.IDP) api.ClientModule {
+func New(config *config.Config, db db.DB, server oauth.Server, idp oidc.IDP, processor processing.Processor) api.ClientModule {
 	return &Module{
-		config: config,
-		db:     db,
-		server: server,
-		idp:    idp,
+		config:    config,
+		db:        db,
+		server:    server,
+		idp:       idp,
+		processor: processor,
 	}
 }
 
@@ -79,6 +86,8 @@ func (m *Module) Route(s router.Router) error {
 
 	s.AttachHandler(http.MethodGet, AuthRegisterPath, m.RegisterGETHandler)
 	s.AttachHandler(http.MethodPost, AuthRegisterPath, m.RegisterPOSTHandler)
+
+	s.AttachHandler(http.MethodGet, CheckYourEmailPath, m.CheckYourEmailGETHandler)
 
 	s.AttachHandler(http.MethodPost, OauthTokenPath, m.TokenPOSTHandler)
 

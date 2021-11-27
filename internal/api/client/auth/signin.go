@@ -111,6 +111,9 @@ func (m *Module) ValidatePassword(ctx context.Context, email string, password st
 	// first we select the user from the database based on email address, bail if no user found for that email
 	gtsUser := &gtsmodel.User{}
 
+	// TODO: https://github.com/superseriousbusiness/gotosocial/issues/329
+	// query for unconfirmedemail OR email here
+
 	if err := m.db.GetWhere(ctx, []db.Where{{Key: "email", Value: email}}, gtsUser); err != nil {
 		l.Debugf("user %s was not retrievable from db during oauth authorization attempt: %s", email, err)
 		return incorrectPassword()
@@ -129,6 +132,9 @@ func (m *Module) ValidatePassword(ctx context.Context, email string, password st
 	}
 
 	// If we've made it this far the email/password is correct, so we can just return the id of the user.
+
+	// TODO: https://github.com/superseriousbusiness/gotosocial/issues/329
+	// validate that the users email is confirmed and thier account has been approved if required by config.
 	userid = gtsUser.ID
 	l.Tracef("returning (%s, %s)", userid, err)
 	return

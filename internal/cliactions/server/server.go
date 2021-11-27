@@ -118,7 +118,7 @@ var Start cliactions.GTSAction = func(ctx context.Context, c *config.Config) err
 	}
 
 	// build client api modules
-	authModule := auth.New(c, dbService, oauthServer, idp)
+	authModule := auth.New(c, dbService, oauthServer, idp, processor)
 	accountModule := account.New(c, processor)
 	instanceModule := instance.New(c, processor)
 	appsModule := app.New(c, processor)

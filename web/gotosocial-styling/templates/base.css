@@ -152,14 +152,15 @@ section.apps {
 	}
 }
 
-section.login {
+section.auth-form {
 	form {
 		display: inline-grid;
 		grid-gap: 0.7rem;
     padding-right: 0.7rem;
 
 
-    input {
+    input[type=text],
+    input[type=password] {
       width: 70vw;
       min-width: 250px;
       max-width: 400px;
