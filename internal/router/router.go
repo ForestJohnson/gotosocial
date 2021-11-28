@@ -69,6 +69,7 @@ func (r *router) AttachStaticFS(relativePath string, fs http.FileSystem) {
 
 // Start starts the router nicely. It will serve two handlers if letsencrypt is enabled, and only the web/API handler if letsencrypt is not enabled.
 func (r *router) Start() {
+	//logrus.Tracef("r.config.LetsEncryptConfig.Enabled: %t", r.config.LetsEncryptConfig.Enabled)
 	if r.config.LetsEncryptConfig.Enabled {
 		// serve the http handler on the selected letsencrypt port, for receiving letsencrypt requests and solving their devious riddles
 		go func() {

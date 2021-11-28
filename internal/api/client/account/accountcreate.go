@@ -101,7 +101,7 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 		return
 	}
 
-	_, ti, err := m.processor.AccountCreate(c.Request.Context(), authed, form)
+	_, ti, err := m.processor.AccountAndTokenCreate(c.Request.Context(), authed, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

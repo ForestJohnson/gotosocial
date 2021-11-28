@@ -20,10 +20,12 @@ package processing
 
 import (
 	"context"
+	golangjson "encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 
+	"github.com/sirupsen/logrus"
 	"github.com/superseriousbusiness/activity/streams"
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
@@ -32,6 +34,13 @@ import (
 )
 
 func (p *processor) ProcessFromClientAPI(ctx context.Context, clientMsg messages.FromClientAPI) error {
+	bytez, err := golangjson.MarshalIndent(clientMsg, "  ", "  ")
+	if err != nil {
+		logrus.Tracef("entering ProcessFromClientAPI: %s", string(bytez))
+	} else {
+		logrus.Tracef("entering ProcessFromClientAPI: %+v", clientMsg)
+	}
+
 	switch clientMsg.APActivityType {
 	case ap.ActivityCreate:
 		// CREATE
@@ -54,6 +63,8 @@ func (p *processor) ProcessFromClientAPI(ctx context.Context, clientMsg messages
 		case ap.ActivityBlock:
 			// CREATE BLOCK
 			return p.processCreateBlockFromClientAPI(ctx, clientMsg)
+		default:
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityCreate with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
 	case ap.ActivityUpdate:
 		// UPDATE
@@ -61,18 +72,24 @@ func (p *processor) ProcessFromClientAPI(ctx context.Context, clientMsg messages
 		case ap.ObjectProfile, ap.ActorPerson:
 			// UPDATE ACCOUNT/PROFILE
 			return p.processUpdateAccountFromClientAPI(ctx, clientMsg)
+		default:
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityUpdate with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
 	case ap.ActivityAccept:
 		// ACCEPT
 		if clientMsg.APObjectType == ap.ActivityFollow {
 			// ACCEPT FOLLOW
 			return p.processAcceptFollowFromClientAPI(ctx, clientMsg)
+		} else {
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityAccept with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
 	case ap.ActivityReject:
 		// REJECT
 		if clientMsg.APObjectType == ap.ActivityFollow {
 			// REJECT FOLLOW (request)
 			return p.processRejectFollowFromClientAPI(ctx, clientMsg)
+		} else {
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityReject with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
 	case ap.ActivityUndo:
 		// UNDO
@@ -89,6 +106,8 @@ func (p *processor) ProcessFromClientAPI(ctx context.Context, clientMsg messages
 		case ap.ActivityAnnounce:
 			// UNDO ANNOUNCE/BOOST
 			return p.processUndoAnnounceFromClientAPI(ctx, clientMsg)
+		default:
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityUndo with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
 	case ap.ActivityDelete:
 		// DELETE
@@ -99,12 +118,23 @@ func (p *processor) ProcessFromClientAPI(ctx context.Context, clientMsg messages
 		case ap.ObjectProfile, ap.ActorPerson:
 			// DELETE ACCOUNT/PROFILE
 			return p.processDeleteAccountFromClientAPI(ctx, clientMsg)
+		default:
+			logrus.Infof("ProcessFromClientAPI was passed an ActivityDelete with unknown APObjectType '%s'", clientMsg.APObjectType)
 		}
+	default:
+		logrus.Infof("ProcessFromClientAPI was called with unknown APActivityType '%s'", clientMsg.APActivityType)
 	}
 	return nil
 }
 
 func (p *processor) processCreateAccountFromClientAPI(ctx context.Context, clientMsg messages.FromClientAPI) error {
+	bytez, err := golangjson.MarshalIndent(clientMsg, "  ", "  ")
+	if err != nil {
+		logrus.Tracef("entering processCreateAccountFromClientAPI: %s", string(bytez))
+	} else {
+		logrus.Tracef("entering processCreateAccountFromClientAPI: %+v", clientMsg)
+	}
+
 	account, ok := clientMsg.GTSModel.(*gtsmodel.Account)
 	if !ok {
 		return errors.New("account was not parseable as *gtsmodel.Account")
@@ -112,6 +142,7 @@ func (p *processor) processCreateAccountFromClientAPI(ctx context.Context, clien
 
 	// return if the account isn't from this domain
 	if account.Domain != "" {
+		logrus.Debugf("processCreateAccountFromClientAPI ignored clientMsg because account.Domain '%s' was nonempty", account.Domain)
 		return nil
 	}
 

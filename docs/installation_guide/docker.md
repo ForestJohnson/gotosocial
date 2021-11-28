@@ -30,10 +30,10 @@ services:
       GTS_STORAGE_SERVE_PROTOCOL: 'https'
       GTS_STORAGE_SERVE_HOST: 'gotosocial.example.com'
       GTS_STORAGE_SERVE_BASE_PATH: '/media'
-      GTS_LETS_ENCRYPT_ENABLED: 'true'
-      GTS_LETS_ENCRYPT_PORT: '1213'
-      GTS_LETS_ENCRYPT_CERT_DIR: '/gotosocial/storage/certs'
-      GTS_LETS_ENCRYPT_EMAIL_ADDRESS: 'admin@example.com'
+      GTS_LETSENCRYPT_ENABLED: 'true'
+      GTS_LETSENCRYPT_PORT: '1213'
+      GTS_LETSENCRYPT_CERT_DIR: '/gotosocial/storage/certs'
+      GTS_LETSENCRYPT_EMAIL_ADDRESS: 'admin@example.com'
 ```
 
 Note how the secret value SMTP_PASSWORD is templated into the docker-compose file. You can store the actual password in a separate file named `.env` like so 

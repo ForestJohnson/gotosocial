@@ -20,13 +20,15 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/sirupsen/logrus"
 	"github.com/superseriousbusiness/gotosocial/internal/api/model"
-	"github.com/superseriousbusiness/gotosocial/internal/oauth"
+	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/validate"
 
 	"github.com/gin-gonic/gin"
@@ -36,11 +38,12 @@ import (
 // The idea is to present a registration page to the user, where they can enter their email address, username and password.
 // The form will then POST to /auth/register, which will be handled by RegisterPOSTHandler
 func (m *Module) RegisterGETHandler(c *gin.Context) {
-	//l := logrus.WithField("func", "RegisterGETHandler")
+	l := logrus.WithField("func", "RegisterGETHandler")
 	if m.idp != nil {
 		// TODO
 		c.AbortWithError(500, errors.New("TODO what should we do for registration when an Identity Provider (idp) is in use"))
 	}
+	l.Tracef("reasonRequired: %t", m.config.AccountsConfig.ReasonRequired)
 	c.HTML(http.StatusOK, "register.tmpl", gin.H{
 		"reasonRequired": m.config.AccountsConfig.ReasonRequired,
 	})
@@ -54,10 +57,19 @@ func (m *Module) RegisterGETHandler(c *gin.Context) {
 func (m *Module) RegisterPOSTHandler(c *gin.Context) {
 	l := logrus.WithField("func", "registerPOSTHandler")
 	l.Trace("entering registration POST handler")
-	authed, err := oauth.Authed(c, true, true, false, false)
-	if err != nil {
-		l.Debugf("couldn't auth: %s", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+
+	s := sessions.Default(c)
+
+	// use the client_id on the session to retrieve info about the app associated with the client_id
+	clientID, ok := s.Get(sessionClientID).(string)
+	if !ok || clientID == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no client_id found in session"})
+		return
+	}
+	app := &gtsmodel.Application{}
+	if err := m.db.GetWhere(c.Request.Context(), []db.Where{{Key: sessionClientID, Value: clientID}}, app); err != nil {
+		m.clearSession(s)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("no application found for client id %s", clientID)})
 		return
 	}
 
@@ -87,7 +99,7 @@ func (m *Module) RegisterPOSTHandler(c *gin.Context) {
 		return
 	}
 
-	user, token, err := m.processor.AccountCreate(c.Request.Context(), authed, form)
+	user, err := m.processor.AccountCreate(c.Request.Context(), app.ID, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -96,15 +108,6 @@ func (m *Module) RegisterPOSTHandler(c *gin.Context) {
 
 	l.Tracef("new registered user: %+v", user)
 
-	// If we are inside an oauth flow right now, it would be nice to finish the flow using this token
-	// (but not until after the user has confirmed their email).
-	// That way, user can go straight from registering an account to being fully logged in and ready to go.
-	// However that would require a lot of extra work and has a lot of edge cases,
-	// so for now we will just drop this token on the floor.
-	// The user will be instructed to log in again after they confirm thier email.
-	l.Tracef("new registered user's token: %+v", token)
-
-	s := sessions.Default(c)
 	s.Set(sessionUserID, user.AccountID)
 	if err := s.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

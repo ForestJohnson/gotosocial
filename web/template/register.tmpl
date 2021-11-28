@@ -17,10 +17,12 @@
       <textarea class="form-control" id="reason" name="reason" required placeholder="I would like an account on this instance because..."></textarea>
       {{ end }}
 
-      <input type="checkbox" class="form-control" id="agreement" name="agreement" required />
+      <input type="checkbox" class="form-control" id="agreement" name="agreement" required value="true"/>
       <label for="agreement">
         I agree to the <a href="/server_rules">server rules</a> and <a href="/terms_of_service">terms of service</a>
       </label>
+
+      <input type="hidden" name="locale" value="en" />
 
       <button type="submit" class="btn btn-success">Register</button>
     </form>

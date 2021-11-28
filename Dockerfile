@@ -17,6 +17,10 @@ ARG GOARCH=
 RUN mkdir /build
 WORKDIR /build
 
+# we can't do this trick because its vendored.
+# COPY go.mod go.sum /build
+# RUN go mod download  
+
 COPY . /build
 
 RUN scripts/build.sh
