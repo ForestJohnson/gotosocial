@@ -24,18 +24,25 @@ import (
 )
 
 const (
-	confirmTemplate = "email_confirm.tmpl"
-	confirmSubject  = "Subject: GoToSocial Email Confirmation"
+	confirmHTMLTemplate = "email_confirm_html.tmpl"
+	confirmTextTemplate = "email_confirm_text.tmpl"
+	confirmSubject      = "Subject: GoToSocial Email Confirmation"
 )
 
 func (s *sender) SendConfirmEmail(toAddress string, data ConfirmData) error {
-	buf := &bytes.Buffer{}
-	if err := s.template.ExecuteTemplate(buf, confirmTemplate, data); err != nil {
+	htmlBuffer := &bytes.Buffer{}
+	if err := s.template.ExecuteTemplate(htmlBuffer, confirmHTMLTemplate, data); err != nil {
 		return err
 	}
-	confirmBody := buf.String()
+	confirmHTML := htmlBuffer.String()
 
-	msg := assembleMessage(confirmSubject, confirmBody, toAddress, s.from)
+	textBuffer := &bytes.Buffer{}
+	if err := s.template.ExecuteTemplate(textBuffer, confirmTextTemplate, data); err != nil {
+		return err
+	}
+	confirmText := textBuffer.String()
+
+	msg := assembleMessage(confirmSubject, confirmText, confirmHTML, toAddress, s.from)
 	return smtp.SendMail(s.hostAddress, s.auth, s.from, []string{toAddress}, msg)
 }
 
