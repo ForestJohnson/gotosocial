@@ -29,11 +29,12 @@ RUN scripts/build.sh
 # ----
 # put the build results from previous steps together into a lean docker image for distribution 
 FROM alpine:3.14.2 AS executor
+
 RUN apk update && apk upgrade --no-cache
 
 # copy over the binary from the first stage
 RUN mkdir -p /gotosocial/storage
-COPY gotosocial /gotosocial/gotosocial
+COPY --from=application_builder  /build/gotosocial /gotosocial/gotosocial
 
 # copy over the web directory with templates etc
 COPY web /gotosocial/web
