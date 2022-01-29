@@ -25,6 +25,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/oidc"
+	"github.com/superseriousbusiness/gotosocial/internal/processing"
 	"github.com/superseriousbusiness/gotosocial/internal/router"
 )
 
@@ -35,6 +36,9 @@ const (
 
 	// CheckYourEmailPath users land here after registering a new account, instructs them to confirm thier email
 	CheckYourEmailPath = "/check_your_email"
+
+	// AuthSignInPath is the API path for users to sign in through
+	AuthRegisterPath = "/auth/register"
 
 	// WaitForApprovalPath users land here after confirming thier email but before an admin approves thier account
 	// (if such is required)
@@ -66,17 +70,19 @@ const (
 
 // Module implements the ClientAPIModule interface for
 type Module struct {
-	db     db.DB
-	server oauth.Server
-	idp    oidc.IDP
+	db        db.DB
+	server    oauth.Server
+	idp       oidc.IDP
+	processor processing.Processor
 }
 
 // New returns a new auth module
-func New(db db.DB, server oauth.Server, idp oidc.IDP) api.ClientModule {
+func New(db db.DB, server oauth.Server, idp oidc.IDP, processor processing.Processor) api.ClientModule {
 	return &Module{
-		db:     db,
-		server: server,
-		idp:    idp,
+		db:        db,
+		server:    server,
+		idp:       idp,
+		processor: processor,
 	}
 }
 
@@ -86,6 +92,11 @@ func (m *Module) Route(s router.Router) error {
 	s.AttachHandler(http.MethodPost, AuthSignInPath, m.SignInPOSTHandler)
 
 	s.AttachHandler(http.MethodPost, OauthTokenPath, m.TokenPOSTHandler)
+
+	s.AttachHandler(http.MethodGet, AuthRegisterPath, m.RegisterGETHandler)
+	s.AttachHandler(http.MethodPost, AuthRegisterPath, m.RegisterPOSTHandler)
+
+	s.AttachHandler(http.MethodGet, CheckYourEmailPath, m.CheckYourEmailGETHandler)
 
 	s.AttachHandler(http.MethodGet, OauthAuthorizePath, m.AuthorizeGETHandler)
 	s.AttachHandler(http.MethodPost, OauthAuthorizePath, m.AuthorizePOSTHandler)

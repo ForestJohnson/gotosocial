@@ -45,6 +45,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/timeline"
 	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 	"github.com/superseriousbusiness/gotosocial/internal/visibility"
+	"github.com/superseriousbusiness/oauth2/v4"
 )
 
 // Processor should be passed to api modules (see internal/apimodule/...). It is used for
@@ -71,8 +72,10 @@ type Processor interface {
 		response, pass work to the processor using a channel instead.
 	*/
 
-	// AccountCreate processes the given form for creating a new account, returning an oauth token for that account if successful.
-	AccountCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.AccountCreateRequest) (*apimodel.Token, error)
+	// Create processes the given form for creating a new account, returning the user info and an oauth token for that account if successful.
+	CreateAccountAndToken(ctx context.Context, applicationToken oauth2.TokenInfo, application *gtsmodel.Application, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error)
+	// Create is similar to CreateWithToken, but it does not create an oauth token.
+	Create(ctx context.Context, applicationID string, form *apimodel.AccountCreateRequest) (*gtsmodel.User, error)
 	// AccountGet processes the given request for account information.
 	AccountGet(ctx context.Context, authed *oauth.Auth, targetAccountID string) (*apimodel.Account, error)
 	// AccountUpdate processes the update of an account with the given form
