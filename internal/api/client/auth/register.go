@@ -98,6 +98,7 @@ func (m *Module) RegisterPOSTHandler(c *gin.Context) {
 		return
 	}
 
+	// create the user entity in the database
 	user, err := m.processor.AccountCreate(c.Request.Context(), app.ID, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
