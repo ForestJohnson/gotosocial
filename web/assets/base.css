@@ -199,6 +199,7 @@ section.error pre {
   background-color: #ff000010;
   font-size: 1.3em;
   white-space: pre-wrap;
+  color: white;
 }
 
 
