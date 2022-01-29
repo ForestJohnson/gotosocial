@@ -71,9 +71,7 @@ type Processor interface {
 		response, pass work to the processor using a channel instead.
 	*/
 
-	// AccountAndTokenCreate processes the given form for creating a new account, returning an oauth token for that account if successful.
-	AccountAndTokenCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error)
-	// AccountCreate is similar to AccountAndTokenCreate but it does not create an auth token.
+	// AccountCreate processes the given form for creating a new account, returning that account if successful.
 	AccountCreate(ctx context.Context, applicationID string, form *apimodel.AccountCreateRequest) (*gtsmodel.User, error)
 	// AccountGet processes the given request for account information.
 	AccountGet(ctx context.Context, authed *oauth.Auth, targetAccountID string) (*apimodel.Account, error)
@@ -271,7 +269,7 @@ func NewProcessor(
 
 	statusProcessor := status.New(db, tc, fromClientAPI)
 	streamingProcessor := streaming.New(db, oauthServer)
-	accountProcessor := account.New(db, tc, mediaHandler, oauthServer, fromClientAPI, federator)
+	accountProcessor := account.New(db, tc, mediaHandler, fromClientAPI, federator)
 	adminProcessor := admin.New(db, tc, mediaHandler, fromClientAPI)
 	mediaProcessor := mediaProcessor.New(db, tc, mediaHandler, storage)
 	userProcessor := user.New(db, emailSender)

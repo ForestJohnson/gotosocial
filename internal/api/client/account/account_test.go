@@ -30,6 +30,7 @@ type AccountStandardTestSuite struct {
 	storage     *kv.KVStore
 	federator   federation.Federator
 	processor   processing.Processor
+	oauthServer oauth.Server
 	emailSender email.Sender
 	sentEmails  map[string]string
 
@@ -65,7 +66,8 @@ func (suite *AccountStandardTestSuite) SetupTest() {
 	suite.sentEmails = make(map[string]string)
 	suite.emailSender = testrig.NewEmailSender("../../../../web/template/", suite.sentEmails)
 	suite.processor = testrig.NewTestProcessor(suite.db, suite.storage, suite.federator, suite.emailSender)
-	suite.accountModule = account.New(suite.processor).(*account.Module)
+	suite.oauthServer = testrig.NewTestOauthServer(suite.db)
+	suite.accountModule = account.New(suite.processor, suite.oauthServer).(*account.Module)
 	testrig.StandardDBSetup(suite.db, nil)
 	testrig.StandardStorageSetup(suite.storage, "../../../../testrig/media")
 }

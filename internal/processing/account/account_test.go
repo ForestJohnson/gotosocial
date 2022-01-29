@@ -88,7 +88,7 @@ func (suite *AccountStandardTestSuite) SetupTest() {
 	suite.federator = testrig.NewTestFederator(suite.db, suite.transportController, suite.storage)
 	suite.sentEmails = make(map[string]string)
 	suite.emailSender = testrig.NewEmailSender("../../../web/template/", suite.sentEmails)
-	suite.accountProcessor = account.New(suite.db, suite.tc, suite.mediaHandler, suite.oauthServer, suite.fromClientAPIChan, suite.federator)
+	suite.accountProcessor = account.New(suite.db, suite.tc, suite.mediaHandler, suite.fromClientAPIChan, suite.federator)
 	testrig.StandardDBSetup(suite.db, nil)
 	testrig.StandardStorageSetup(suite.storage, "../../../testrig/media")
 }

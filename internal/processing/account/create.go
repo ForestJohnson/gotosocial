@@ -33,30 +33,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 	"github.com/superseriousbusiness/gotosocial/internal/text"
-	"github.com/superseriousbusiness/oauth2/v4"
 )
-
-func (p *processor) CreateAccountAndToken(ctx context.Context, applicationToken oauth2.TokenInfo, application *gtsmodel.Application, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error) {
-	l := logrus.WithField("func", "accountAndTokenCreate")
-
-	user, err := p.Create(ctx, application.ID, form)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	l.Tracef("generating a token for user %s with account %s and application %s", user.ID, user.AccountID, application.ID)
-	accessToken, err := p.oauthServer.GenerateUserAccessToken(ctx, applicationToken, application.ClientSecret, user.ID)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error creating new access token for user %s: %s", user.ID, err)
-	}
-
-	return user, &apimodel.Token{
-		AccessToken: accessToken.GetAccess(),
-		TokenType:   "Bearer",
-		Scope:       accessToken.GetScope(),
-		CreatedAt:   accessToken.GetAccessCreateAt().Unix(),
-	}, nil
-}
 
 func (p *processor) Create(ctx context.Context, applicationID string, form *apimodel.AccountCreateRequest) (*gtsmodel.User, error) {
 	l := logrus.WithField("func", "accountCreate")

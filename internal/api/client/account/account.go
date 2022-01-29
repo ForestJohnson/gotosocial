@@ -24,6 +24,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/superseriousbusiness/gotosocial/internal/api"
+	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/processing"
 
 	"github.com/superseriousbusiness/gotosocial/internal/router"
@@ -75,13 +76,15 @@ const (
 
 // Module implements the ClientAPIModule interface for account-related actions
 type Module struct {
-	processor processing.Processor
+	processor   processing.Processor
+	oauthServer oauth.Server
 }
 
 // New returns a new account module
-func New(processor processing.Processor) api.ClientModule {
+func New(processor processing.Processor, oauthServer oauth.Server) api.ClientModule {
 	return &Module{
-		processor: processor,
+		processor:   processor,
+		oauthServer: oauthServer,
 	}
 }
 

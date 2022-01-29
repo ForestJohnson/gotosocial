@@ -29,18 +29,14 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/media"
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
-	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/text"
 	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 	"github.com/superseriousbusiness/gotosocial/internal/visibility"
-	"github.com/superseriousbusiness/oauth2/v4"
 )
 
 // Processor wraps a bunch of functions for processing account actions.
 type Processor interface {
-	// Create processes the given form for creating a new account, returning the user info and an oauth token for that account if successful.
-	CreateAccountAndToken(ctx context.Context, applicationToken oauth2.TokenInfo, application *gtsmodel.Application, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error)
-	// Create is similar to CreateWithToken, but it does not create an oauth token.
+	// Create processes the given form for creating a new account, returning the user info if successful.
 	Create(ctx context.Context, applicationID string, form *apimodel.AccountCreateRequest) (*gtsmodel.User, error)
 	// Delete deletes an account, and all of that account's statuses, media, follows, notifications, etc etc etc.
 	// The origin passed here should be either the ID of the account doing the delete (can be itself), or the ID of a domain block.
@@ -81,7 +77,6 @@ type processor struct {
 	tc            typeutils.TypeConverter
 	mediaHandler  media.Handler
 	fromClientAPI chan messages.FromClientAPI
-	oauthServer   oauth.Server
 	filter        visibility.Filter
 	formatter     text.Formatter
 	db            db.DB
@@ -89,12 +84,11 @@ type processor struct {
 }
 
 // New returns a new account processor.
-func New(db db.DB, tc typeutils.TypeConverter, mediaHandler media.Handler, oauthServer oauth.Server, fromClientAPI chan messages.FromClientAPI, federator federation.Federator) Processor {
+func New(db db.DB, tc typeutils.TypeConverter, mediaHandler media.Handler, fromClientAPI chan messages.FromClientAPI, federator federation.Federator) Processor {
 	return &processor{
 		tc:            tc,
 		mediaHandler:  mediaHandler,
 		fromClientAPI: fromClientAPI,
-		oauthServer:   oauthServer,
 		filter:        visibility.NewFilter(db),
 		formatter:     text.NewFormatter(db),
 		db:            db,
