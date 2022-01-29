@@ -1,0 +1,31 @@
+{{ template "header.tmpl" .}}
+<main>
+  <section class="auth-form register">
+    <h1>Register</h1>
+    <form action="/auth/register" method="POST">
+      <label for="email">Email</label>
+      <input type="text" class="form-control" id="email" name="email" required />
+
+      <label for="username">Username</label>
+      <input type="text" class="form-control" id="username" name="username" required />
+
+      <label for="password">Password</label>
+      <input type="password" class="form-control" id="password" name="password" required />
+
+      {{ if .reasonRequired }}
+      <label for="reason">Reason</label>
+      <textarea class="form-control" id="reason" name="reason" required placeholder="I would like an account on this instance because..."></textarea>
+      {{ end }}
+
+      <input type="checkbox" class="form-control" id="agreement" name="agreement" required value="true"/>
+      <label for="agreement">
+        I agree to the <a href="/server_rules">server rules</a> and <a href="/terms_of_service">terms of service</a>
+      </label>
+
+      <input type="hidden" name="locale" value="en" />
+
+      <button type="submit" class="btn btn-success">Register</button>
+    </form>
+  </section>
+</main>
+{{ template "footer.tmpl" .}}

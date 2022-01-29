@@ -23,7 +23,9 @@ import (
 	"fmt"
 	"net/mail"
 
+	"github.com/spf13/viper"
 	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
+	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/regexes"
 	pwv "github.com/wagslane/go-password-validator"
 	"golang.org/x/text/language"
@@ -42,6 +44,40 @@ const (
 	// maximumEmojiShortcodeLength   = 30
 	// maximumHashtagLength          = 30
 )
+
+// AccountCreationForm checks through all the necessary prerequisites for creating a new account,
+// according to the provided account create request. If the account isn't eligible, an error will be returned.
+func AccountCreationForm(form *apimodel.AccountCreateRequest) error {
+	if !viper.GetBool(config.Keys.AccountsRegistrationOpen) {
+		return errors.New("registration is not open for this server")
+	}
+
+	if err := Username(form.Username); err != nil {
+		return err
+	}
+
+	if err := Email(form.Email); err != nil {
+		return err
+	}
+
+	if err := NewPassword(form.Password); err != nil {
+		return err
+	}
+
+	if !form.Agreement {
+		return errors.New("agreement to terms and conditions not given")
+	}
+
+	if err := Language(form.Locale); err != nil {
+		return err
+	}
+
+	if err := SignUpReason(form.Reason, viper.GetBool(config.Keys.AccountsReasonRequired)); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // NewPassword returns an error if the given password is not sufficiently strong, or nil if it's ok.
 func NewPassword(password string) error {
