@@ -110,6 +110,7 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 
 	form.IP = signUpIP
 
+	// create the user entity in the database
 	user, err := m.processor.AccountCreate(c.Request.Context(), authed.Application.ID, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
