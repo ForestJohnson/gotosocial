@@ -25,9 +25,11 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
+	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/messages"
 	"github.com/superseriousbusiness/gotosocial/internal/text"
@@ -73,9 +75,14 @@ func (p *processor) Create(ctx context.Context, applicationID string, form *apim
 	if !usernameAvailable {
 		return nil, fmt.Errorf("username %s in use", form.Username)
 	}
+
+	keys := config.Keys
+	reasonRequired := viper.GetBool(keys.AccountsReasonRequired)
+	approvalRequired := viper.GetBool(keys.AccountsApprovalRequired)
+
 	// don't store a reason if we don't require one
 	reason := form.Reason
-	if !p.config.AccountsConfig.ReasonRequired {
+	if !reasonRequired {
 		reason = ""
 	} else {
 		// TODO whats the right way to validate that a reason was provided?  for now, just require more than 2 non whitespace characters.
@@ -85,7 +92,7 @@ func (p *processor) Create(ctx context.Context, applicationID string, form *apim
 	}
 
 	l.Trace("creating new username and account")
-	user, err := p.db.NewSignup(ctx, form.Username, text.RemoveHTML(reason), p.config.AccountsConfig.RequireApproval, form.Email, form.Password, form.IP, form.Locale, applicationID, false, false)
+	user, err := p.db.NewSignup(ctx, form.Username, text.RemoveHTML(reason), approvalRequired, form.Email, form.Password, form.IP, form.Locale, applicationID, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("error creating new signup in the database: %s", err)
 	}

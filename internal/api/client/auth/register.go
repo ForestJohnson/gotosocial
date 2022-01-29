@@ -122,5 +122,5 @@ func (m *Module) RegisterPOSTHandler(c *gin.Context) {
 // A page you land on after registering a new account, similar to /setup on mastodon.
 func (m *Module) CheckYourEmailGETHandler(c *gin.Context) {
 	//l := logrus.WithField("func", "CheckYourEmailGETHandler")
-	c.HTML(http.StatusOK, "check_your_email.tmpl", gin.H{"emailFromAddress": m.config.SMTPConfig.From})
+	c.HTML(http.StatusOK, "check_your_email.tmpl", gin.H{"emailFromAddress": viper.GetString(config.Keys.SMTPFrom)})
 }
