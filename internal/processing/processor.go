@@ -45,6 +45,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/timeline"
 	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 	"github.com/superseriousbusiness/gotosocial/internal/visibility"
+	"github.com/superseriousbusiness/oauth2/v4"
 )
 
 // Processor should be passed to api modules (see internal/apimodule/...). It is used for
@@ -177,6 +178,8 @@ type Processor interface {
 	// OpenStreamForAccount opens a new stream for the given account, with the given stream type.
 	OpenStreamForAccount(ctx context.Context, account *gtsmodel.Account, streamType string) (*stream.Stream, gtserror.WithCode)
 
+	UserOAuthTokenCreate(ctx context.Context, user *gtsmodel.User, oauthTokenInfo oauth2.TokenInfo)
+
 	// UserChangePassword changes the password for the given user, with the given form.
 	UserChangePassword(ctx context.Context, authed *oauth.Auth, form *apimodel.PasswordChangeRequest) gtserror.WithCode
 	// UserConfirmEmail confirms an email address using the given token.
@@ -272,7 +275,7 @@ func NewProcessor(
 	accountProcessor := account.New(db, tc, mediaHandler, fromClientAPI, federator)
 	adminProcessor := admin.New(db, tc, mediaHandler, fromClientAPI)
 	mediaProcessor := mediaProcessor.New(db, tc, mediaHandler, storage)
-	userProcessor := user.New(db, emailSender)
+	userProcessor := user.New(db, oauthServer, emailSender)
 	federationProcessor := federationProcessor.New(db, tc, federator, fromFederator)
 
 	return &processor{

@@ -119,11 +119,7 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 	}
 
 	l.Tracef("generating a token for user %s with account %s and application %s", user.ID, user.AccountID, authed.Application.ID)
-	accessToken, err := m.oauthServer.GenerateUserAccessToken(c.Request.Context(), authed.Token, authed.Application.ClientSecret, user.ID)
-	if err != nil {
-		l.Errorf("internal server error while creating new account: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
+	accessToken, err := m.processor.UserOAuthTokenCreate(c.Request.Context(), user, authed.Token)
 
 	c.JSON(http.StatusOK, &model.Token{
 		AccessToken: accessToken.GetAccess(),

@@ -31,10 +31,6 @@ func (p *processor) AccountCreate(ctx context.Context, applicationID string, for
 	return p.accountProcessor.Create(ctx, applicationID, form)
 }
 
-func (p *processor) AccountAndTokenCreate(ctx context.Context, authed *oauth.Auth, form *apimodel.AccountCreateRequest) (*gtsmodel.User, *apimodel.Token, error) {
-	return p.accountProcessor.CreateAccountAndToken(ctx, authed.Token, authed.Application, form)
-}
-
 func (p *processor) AccountGet(ctx context.Context, authed *oauth.Auth, targetAccountID string) (*apimodel.Account, error) {
 	return p.accountProcessor.Get(ctx, authed.Account, targetAccountID)
 }

@@ -81,10 +81,9 @@ type Module struct {
 }
 
 // New returns a new account module
-func New(processor processing.Processor, oauthServer oauth.Server) api.ClientModule {
+func New(processor processing.Processor) api.ClientModule {
 	return &Module{
-		processor:   processor,
-		oauthServer: oauthServer,
+		processor: processor,
 	}
 }
 

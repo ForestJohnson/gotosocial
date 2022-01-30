@@ -25,7 +25,12 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
+	"github.com/superseriousbusiness/oauth2/v4"
 )
+
+func (p *processor) UserOAuthTokenCreate(ctx context.Context, user *gtsmodel.User, auth *oauth2.Auth, clientSecret string) (*oauth2.TokenInfo, gtserror.WithCode) {
+	return p.userProcessor.oauthServer.GenerateUserAccessToken(ctx, auth.Token, auth.Application.ClientSecret, user.ID)
+}
 
 func (p *processor) UserChangePassword(ctx context.Context, authed *oauth.Auth, form *apimodel.PasswordChangeRequest) gtserror.WithCode {
 	return p.userProcessor.ChangePassword(ctx, authed.User, form.OldPassword, form.NewPassword)

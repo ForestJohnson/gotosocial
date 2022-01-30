@@ -66,7 +66,7 @@ const (
 	// UnmutePath is for undoing an existing mute
 	UnmutePath = BasePathWithID + "/unmute"
 
-	// PinPath is for pinning a status to an account profile so that it's the first thing people see
+	// PinPath is for pinning a status to an status profile so that it's the first thing people see
 	PinPath = BasePathWithID + "/pin"
 	// UnpinPath is for undoing a pin and returning a status to the ever-swirling drain of time and entropy
 	UnpinPath = BasePathWithID + "/unpin"
@@ -77,7 +77,7 @@ type Module struct {
 	processor processing.Processor
 }
 
-// New returns a new account module
+// New returns a new status module
 func New(processor processing.Processor) api.ClientModule {
 	return &Module{
 		processor: processor,
