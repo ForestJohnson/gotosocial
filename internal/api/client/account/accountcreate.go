@@ -29,6 +29,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/superseriousbusiness/gotosocial/internal/api"
 	"github.com/superseriousbusiness/gotosocial/internal/api/model"
+	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
 	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/validate"
@@ -110,14 +111,27 @@ func (m *Module) AccountCreatePOSTHandler(c *gin.Context) {
 
 	form.IP = signUpIP
 
-	ti, err := m.processor.AccountCreate(c.Request.Context(), authed.Application.ID, form)
+	user, err := m.processor.AccountCreate(c.Request.Context(), authed.Application.ID, form)
 	if err != nil {
 		l.Errorf("internal server error while creating new account: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, ti)
+	l.Tracef("generating a token for user %s with account %s and application %s", user.ID, user.AccountID, authed.Application.ID)
+
+	accessToken, err := m.processor.UserOAuthTokenCreate(c.Request.Context(), authed, user)
+	if err != nil {
+		l.Errorf("internal server error while creating new account: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, &apimodel.Token{
+		AccessToken: accessToken.GetAccess(),
+		TokenType:   "Bearer",
+		Scope:       accessToken.GetScope(),
+		CreatedAt:   accessToken.GetAccessCreateAt().Unix(),
+	})
 }
 
 // validateCreateAccount checks through all the necessary prerequisites for creating a new account,

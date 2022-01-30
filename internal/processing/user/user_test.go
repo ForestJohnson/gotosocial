@@ -23,6 +23,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
+	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/user"
 	"github.com/superseriousbusiness/gotosocial/testrig"
 )
@@ -31,6 +32,7 @@ type UserStandardTestSuite struct {
 	suite.Suite
 	emailSender email.Sender
 	db          db.DB
+	oauthServer oauth.Server
 
 	testUsers map[string]*gtsmodel.User
 
@@ -48,7 +50,7 @@ func (suite *UserStandardTestSuite) SetupTest() {
 	suite.emailSender = testrig.NewEmailSender("../../../web/template/", suite.sentEmails)
 	suite.testUsers = testrig.NewTestUsers()
 
-	suite.user = user.New(suite.db, suite.emailSender)
+	suite.user = user.New(suite.db, suite.oauthServer, suite.emailSender)
 
 	testrig.StandardDBSetup(suite.db, nil)
 }

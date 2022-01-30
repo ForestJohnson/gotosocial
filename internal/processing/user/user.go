@@ -25,10 +25,14 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
+	"github.com/superseriousbusiness/gotosocial/internal/oauth"
+	"github.com/superseriousbusiness/oauth2/v4"
 )
 
 // Processor wraps a bunch of functions for processing user-level actions.
 type Processor interface {
+	// OAuthTokenCreate shortcuts the normal oauth flow to create an user-level bearer token *without* requiring that user to log in
+	OAuthTokenCreate(ctx context.Context, authed *oauth.Auth, user *gtsmodel.User) (oauth2.TokenInfo, gtserror.WithCode)
 	// ChangePassword changes the specified user's password from old => new,
 	// or returns an error if the new password is too weak, or the old password is incorrect.
 	ChangePassword(ctx context.Context, user *gtsmodel.User, oldPassword string, newPassword string) gtserror.WithCode
@@ -40,13 +44,15 @@ type Processor interface {
 
 type processor struct {
 	emailSender email.Sender
+	oauthServer oauth.Server
 	db          db.DB
 }
 
 // New returns a new user processor
-func New(db db.DB, emailSender email.Sender) Processor {
+func New(db db.DB, oauthServer oauth.Server, emailSender email.Sender) Processor {
 	return &processor{
 		emailSender: emailSender,
+		oauthServer: oauthServer,
 		db:          db,
 	}
 }

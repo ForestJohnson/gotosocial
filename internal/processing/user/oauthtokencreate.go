@@ -16,26 +16,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package processing
+package user
 
 import (
 	"context"
+	"fmt"
 
-	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/oauth2/v4"
 )
 
-func (p *processor) UserOAuthTokenCreate(ctx context.Context, authed *oauth.Auth, user *gtsmodel.User) (oauth2.TokenInfo, gtserror.WithCode) {
-	return p.userProcessor.OAuthTokenCreate(ctx, authed, user)
-}
-
-func (p *processor) UserChangePassword(ctx context.Context, authed *oauth.Auth, form *apimodel.PasswordChangeRequest) gtserror.WithCode {
-	return p.userProcessor.ChangePassword(ctx, authed.User, form.OldPassword, form.NewPassword)
-}
-
-func (p *processor) UserConfirmEmail(ctx context.Context, token string) (*gtsmodel.User, gtserror.WithCode) {
-	return p.userProcessor.ConfirmEmail(ctx, token)
+func (p *processor) OAuthTokenCreate(ctx context.Context, authed *oauth.Auth, user *gtsmodel.User) (oauth2.TokenInfo, gtserror.WithCode) {
+	accessToken, err := p.oauthServer.GenerateUserAccessToken(ctx, authed.Token, authed.Application.ClientSecret, user.ID)
+	if err != nil {
+		return nil, gtserror.NewErrorInternalError(err, fmt.Sprintf("error generating user access token for user %s", user.ID))
+	}
+	return accessToken, nil
 }
