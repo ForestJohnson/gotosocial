@@ -133,6 +133,19 @@ func adminCommands() *cobra.Command {
 	flag.AdminAccountPassword(adminAccountPasswordCmd, config.Defaults)
 	adminAccountCmd.AddCommand(adminAccountPasswordCmd)
 
+	adminResendConfirmationCmd := &cobra.Command{
+		Use:   "resend",
+		Short: "resend the confirmation email for the given account",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return preRun(cmd)
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return run(cmd.Context(), account.ResendConfirmation)
+		},
+	}
+	flag.AdminAccountPassword(adminResendConfirmationCmd, config.Defaults)
+	adminAccountCmd.AddCommand(adminResendConfirmationCmd)
+
 	adminCmd.AddCommand(adminAccountCmd)
 
 	/*

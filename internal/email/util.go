@@ -27,6 +27,9 @@ import (
 	"strings"
 )
 
+const mime = `MIME-version: 1.0;
+Content-Type: text/plain;`
+
 func loadTemplates(templateBaseDir string) (*template.Template, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -50,7 +53,7 @@ func assembleMessage(mailSubject string, mailBody string, mailTo string, mailFro
 	msg := []byte(
 		"To: " + mailTo + "\r\n" +
 			"Subject: " + mailSubject + "\r\n" +
-			"\r\n" +
+			mime + "\r\n" +
 			mailBody + "\r\n",
 	)
 
