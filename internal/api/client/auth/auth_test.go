@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"codeberg.org/gruf/go-store/kv"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -31,9 +32,12 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/api/client/auth"
 	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/email"
+	"github.com/superseriousbusiness/gotosocial/internal/federation"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/oidc"
+	"github.com/superseriousbusiness/gotosocial/internal/processing"
 	"github.com/superseriousbusiness/gotosocial/internal/typeutils"
 	"github.com/superseriousbusiness/gotosocial/testrig"
 )
@@ -42,6 +46,11 @@ type AuthStandardTestSuite struct {
 	suite.Suite
 	db          db.DB
 	tc          typeutils.TypeConverter
+	storage     *kv.KVStore
+	federator   federation.Federator
+	processor   processing.Processor
+	emailSender email.Sender
+	sentEmails  map[string]string
 	idp         oidc.IDP
 	oauthServer oauth.Server
 
@@ -72,9 +81,11 @@ func (suite *AuthStandardTestSuite) SetupSuite() {
 func (suite *AuthStandardTestSuite) SetupTest() {
 	testrig.InitTestConfig()
 	suite.db = testrig.NewTestDB()
+	suite.storage = testrig.NewTestStorage()
+	suite.federator = testrig.NewTestFederator(suite.db, testrig.NewTestTransportController(testrig.NewMockHTTPClient(nil), suite.db), suite.storage)
 	testrig.InitTestLog()
-	// suite.sentEmails = make(map[string]string)
-	// suite.emailSender = testrig.NewEmailSender("../../../../web/template/", suite.sentEmails)
+	suite.sentEmails = make(map[string]string)
+	suite.emailSender = testrig.NewEmailSender("../../../../web/template/", suite.sentEmails)
 
 	suite.oauthServer = testrig.NewTestOauthServer(suite.db)
 	var err error
@@ -82,7 +93,8 @@ func (suite *AuthStandardTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
-	suite.authModule = auth.New(suite.db, suite.oauthServer, suite.idp).(*auth.Module)
+	suite.processor = testrig.NewTestProcessor(suite.db, suite.storage, suite.federator, suite.emailSender)
+	suite.authModule = auth.New(suite.db, suite.oauthServer, suite.idp, suite.processor).(*auth.Module)
 	testrig.StandardDBSetup(suite.db, nil)
 	//testrig.New
 }
