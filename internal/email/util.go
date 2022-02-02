@@ -21,11 +21,15 @@ package email
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
+<<<<<<< HEAD
 	"regexp"
 	"strings"
+=======
+	"strings"
+	"text/template"
+>>>>>>> refs/heads/main
 )
 
 func loadTemplates(templateBaseDir string) (*template.Template, error) {
@@ -57,9 +61,8 @@ func assembleMessage(mailSubject string, mailBody string, mailTo string, mailFro
 		return nil, errors.New("email to address must not contain newline characters")
 	}
 
-	//normalize the message body to use CRLF line endings
-	crlf, _ := regexp.Compile("\\r\\n")
-	mailBody = crlf.ReplaceAllString(mailBody, "\n")
+	// normalize the message body to use CRLF line endings
+	mailBody = strings.ReplaceAll(mailBody, "\r\n", "\n")
 	mailBody = strings.ReplaceAll(mailBody, "\n", "\r\n")
 
 	msg := []byte(

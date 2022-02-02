@@ -90,6 +90,12 @@ func (m *Module) TokenCheck(c *gin.Context) {
 			l.Warnf("no account found for userID %s", userID)
 			return
 		}
+
+		if !acct.SuspendedAt.IsZero() {
+			l.Warnf("authenticated user %s's account (accountId=%s) has been suspended", userID, user.AccountID)
+			return
+		}
+
 		c.Set(oauth.SessionAuthorizedAccount, acct)
 	}
 
