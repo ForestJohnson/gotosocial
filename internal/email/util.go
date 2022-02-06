@@ -23,13 +23,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-<<<<<<< HEAD
-	"regexp"
-	"strings"
-=======
 	"strings"
 	"text/template"
->>>>>>> refs/heads/main
 )
 
 func loadTemplates(templateBaseDir string) (*template.Template, error) {
