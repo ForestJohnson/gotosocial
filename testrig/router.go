@@ -21,13 +21,10 @@ package testrig
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/superseriousbusiness/gotosocial/internal/config"
@@ -44,19 +41,10 @@ func NewTestRouter(db db.DB) router.Router {
 	return r
 }
 
-// CreateTestContextWithTemplatesAndSessions calls gin.CreateTestContext and then configures the sessions and templates similarly to how the router does
-func CreateTestContextWithTemplatesAndSessions(request *http.Request, responseWriter http.ResponseWriter) (*gin.Context, *gin.Engine, sessions.Session) {
-
-	ctx, engine := gin.CreateTestContext(responseWriter)
-	ctx.Request = request
+// ConfigureTemplatesWithGin will panic on any errors related to template loading during tests
+func ConfigureTemplatesWithGin(engine *gin.Engine) {
 
 	router.LoadTemplateFunctions(engine)
-
-	// does not work because CWD is messed up while tests are running
-	// // load templates onto the engine
-	// if err := router.LoadTemplates(engine); err != nil {
-	// 	panic(err)
-	// }
 
 	// https://stackoverflow.com/questions/31873396/is-it-possible-to-get-the-current-root-of-package-structure-as-a-string-in-golan
 	_, runtimeCallerLocation, _, _ := runtime.Caller(0)
@@ -74,13 +62,4 @@ func CreateTestContextWithTemplatesAndSessions(request *http.Request, responseWr
 
 	tmPath := filepath.Join(projectRoot, fmt.Sprintf("%s*", templateBaseDir))
 	engine.LoadHTMLGlob(tmPath)
-
-	store := memstore.NewStore(make([]byte, 32), make([]byte, 32))
-	store.Options(router.SessionOptions())
-
-	sessionMiddleware := sessions.Sessions("gotosocial-localhost", store)
-
-	sessionMiddleware(ctx)
-
-	return ctx, engine, sessions.Default(ctx)
 }
