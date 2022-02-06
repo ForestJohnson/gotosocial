@@ -32,10 +32,38 @@ func loadTemplates(templateBaseDir string) (*template.Template, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting current working directory: %s", err)
 	}
+	if !strings.HasSuffix(templateBaseDir, string(filepath.Separator)) {
+		return nil, fmt.Errorf(
+			"templateBaseDir '%s' should end with filepath.Separator '%s'",
+			templateBaseDir, string(filepath.Separator),
+		)
+	}
+	relBaseDir := filepath.Join(cwd, templateBaseDir)
+	absBaseDir, err := filepath.Abs(relBaseDir)
+	if err != nil {
+		return nil, fmt.Errorf("error converting templateBaseDir '%s' to absolute path: %s", relBaseDir, err)
+	}
+	contents, err := os.ReadDir(absBaseDir)
+	if err != nil {
+		return nil, fmt.Errorf("error reading templateBaseDir '%s': %s", absBaseDir, err)
+	}
+
+	includesEmailTemplate := false
+	for _, content := range contents {
+		if content.Type().IsRegular() && strings.HasPrefix(content.Name(), "email_") && strings.HasSuffix(content.Name(), ".tmpl") {
+			includesEmailTemplate = true
+			break
+		}
+	}
+	if !includesEmailTemplate {
+		return nil, fmt.Errorf(
+			"didn't find any files starting with 'email_' and ending with '.tmpl' in templateBaseDir '%s': %s",
+			absBaseDir, err,
+		)
+	}
 
 	// look for all templates that start with 'email_'
-	tmPath := filepath.Join(cwd, fmt.Sprintf("%semail_*", templateBaseDir))
-	return template.ParseGlob(tmPath)
+	return template.ParseGlob(fmt.Sprintf("%semail_*", absBaseDir))
 }
 
 // https://datatracker.ietf.org/doc/html/rfc2822

@@ -19,8 +19,6 @@
 package testrig
 
 import (
-	"github.com/spf13/viper"
-	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 )
 
@@ -30,7 +28,6 @@ import (
 // the map, with email address of the recipient as the key, and the value as the
 // parsed email message as it would have been sent.
 func NewEmailSender(templateBaseDir string, sentEmails map[string]string) email.Sender {
-	viper.Set(config.Keys.WebTemplateBaseDir, templateBaseDir)
 
 	var sendCallback func(toAddress string, message string)
 
@@ -40,7 +37,7 @@ func NewEmailSender(templateBaseDir string, sentEmails map[string]string) email.
 		}
 	}
 
-	s, err := email.NewNoopSender(sendCallback)
+	s, err := email.NewNoopSender(templateBaseDir, sendCallback)
 	if err != nil {
 		panic(err)
 	}

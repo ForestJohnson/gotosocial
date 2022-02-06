@@ -121,7 +121,7 @@ var Start action.GTSAction = func(ctx context.Context) error {
 		}
 	} else {
 		// no host is defined so create a noop sender
-		emailSender, err = email.NewNoopSender(nil)
+		emailSender, err = email.NewNoopSender(viper.GetString(config.Keys.WebTemplateBaseDir), nil)
 		if err != nil {
 			return fmt.Errorf("error creating noop email sender: %s", err)
 		}
