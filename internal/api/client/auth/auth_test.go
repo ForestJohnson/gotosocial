@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 
+<<<<<<< HEAD
 	"codeberg.org/gruf/go-store/kv"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
@@ -96,6 +97,65 @@ func (suite *AuthStandardTestSuite) SetupTest() {
 	}
 	suite.processor = testrig.NewTestProcessor(suite.db, suite.storage, suite.federator, suite.emailSender)
 	suite.authModule = auth.New(suite.db, suite.oauthServer, suite.idp, suite.processor).(*auth.Module)
+=======
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/suite"
+	"github.com/superseriousbusiness/gotosocial/internal/api/client/auth"
+	"github.com/superseriousbusiness/gotosocial/internal/config"
+	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
+	"github.com/superseriousbusiness/gotosocial/internal/oauth"
+	"github.com/superseriousbusiness/gotosocial/internal/oidc"
+	"github.com/superseriousbusiness/gotosocial/internal/router"
+	"github.com/superseriousbusiness/gotosocial/testrig"
+)
+
+type AuthStandardTestSuite struct {
+	suite.Suite
+	db          db.DB
+	idp         oidc.IDP
+	oauthServer oauth.Server
+
+	// standard suite models
+	testTokens       map[string]*gtsmodel.Token
+	testClients      map[string]*gtsmodel.Client
+	testApplications map[string]*gtsmodel.Application
+	testUsers        map[string]*gtsmodel.User
+	testAccounts     map[string]*gtsmodel.Account
+
+	// module being tested
+	authModule *auth.Module
+}
+
+const (
+	sessionUserID   = "userid"
+	sessionClientID = "client_id"
+)
+
+func (suite *AuthStandardTestSuite) SetupSuite() {
+	suite.testTokens = testrig.NewTestTokens()
+	suite.testClients = testrig.NewTestClients()
+	suite.testApplications = testrig.NewTestApplications()
+	suite.testUsers = testrig.NewTestUsers()
+	suite.testAccounts = testrig.NewTestAccounts()
+}
+
+func (suite *AuthStandardTestSuite) SetupTest() {
+	testrig.InitTestConfig()
+	suite.db = testrig.NewTestDB()
+	testrig.InitTestLog()
+
+	suite.oauthServer = testrig.NewTestOauthServer(suite.db)
+	var err error
+	suite.idp, err = oidc.NewIDP(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	suite.authModule = auth.New(suite.db, suite.oauthServer, suite.idp).(*auth.Module)
+>>>>>>> refs/remotes/origin/main
 	testrig.StandardDBSetup(suite.db, nil)
 }
 
