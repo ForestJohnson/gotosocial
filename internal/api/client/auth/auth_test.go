@@ -35,6 +35,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/email"
 	"github.com/superseriousbusiness/gotosocial/internal/federation"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
+	"github.com/superseriousbusiness/gotosocial/internal/media"
 	"github.com/superseriousbusiness/gotosocial/internal/oauth"
 	"github.com/superseriousbusiness/gotosocial/internal/oidc"
 	"github.com/superseriousbusiness/gotosocial/internal/processing"
@@ -45,15 +46,16 @@ import (
 
 type AuthStandardTestSuite struct {
 	suite.Suite
-	db          db.DB
-	tc          typeutils.TypeConverter
-	storage     *kv.KVStore
-	federator   federation.Federator
-	processor   processing.Processor
-	emailSender email.Sender
-	sentEmails  map[string]string
-	idp         oidc.IDP
-	oauthServer oauth.Server
+	db           db.DB
+	tc           typeutils.TypeConverter
+	storage      *kv.KVStore
+	mediaManager media.Manager
+	federator    federation.Federator
+	processor    processing.Processor
+	emailSender  email.Sender
+	sentEmails   map[string]string
+	idp          oidc.IDP
+	oauthServer  oauth.Server
 
 	// standard suite models
 	testTokens       map[string]*gtsmodel.Token
@@ -83,7 +85,8 @@ func (suite *AuthStandardTestSuite) SetupTest() {
 	testrig.InitTestConfig()
 	suite.db = testrig.NewTestDB()
 	suite.storage = testrig.NewTestStorage()
-	suite.federator = testrig.NewTestFederator(suite.db, testrig.NewTestTransportController(testrig.NewMockHTTPClient(nil), suite.db), suite.storage)
+	suite.mediaManager = testrig.NewTestMediaManager(suite.db, suite.storage)
+	suite.federator = testrig.NewTestFederator(suite.db, testrig.NewTestTransportController(testrig.NewMockHTTPClient(nil), suite.db), suite.storage, suite.mediaManager)
 	testrig.InitTestLog()
 	suite.sentEmails = make(map[string]string)
 	suite.emailSender = testrig.NewEmailSender("../../../../web/template/", suite.sentEmails)
@@ -94,7 +97,7 @@ func (suite *AuthStandardTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
-	suite.processor = testrig.NewTestProcessor(suite.db, suite.storage, suite.federator, suite.emailSender)
+	suite.processor = testrig.NewTestProcessor(suite.db, suite.storage, suite.federator, suite.emailSender, suite.mediaManager)
 	suite.authModule = auth.New(suite.db, suite.oauthServer, suite.idp, suite.processor).(*auth.Module)
 	testrig.StandardDBSetup(suite.db, nil)
 }
