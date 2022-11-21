@@ -1,4 +1,8 @@
 # syntax=docker/dockerfile:1.3
+
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
 # stage 1: generate up-to-date swagger.yaml to put in the final container
 FROM --platform=${BUILDPLATFORM} quay.io/goswagger/swagger:v0.30.0 AS swagger
 
